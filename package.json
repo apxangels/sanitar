@@ -1,0 +1,25 @@
+{
+  "name": "sanitar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "import-rules": "tsx scripts/import-gitleaks-rules.ts",
+    "build": "pnpm -r --workspace-concurrency=1 build",
+    "test": "pnpm -r --workspace-concurrency=1 test && vitest run",
+    "typecheck": "pnpm -r typecheck && tsc -p scripts/tsconfig.json",
+    "dev": "pnpm --filter @sanitar/core build && pnpm --parallel --filter @sanitar/web --filter @sanitar/server dev",
+    "start": "node apps/server/dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "smol-toml": "^1.6.0",
+    "tsx": "^4.23.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

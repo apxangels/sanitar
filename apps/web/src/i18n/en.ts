@@ -1,0 +1,41 @@
+/** All UI strings. To add a language, copy this file and translate the values. */
+export const en = {
+  title: "Sanitar",
+  trust: "Your text is processed right in the browser and never leaves this page.",
+  sourceLabel: "Input",
+  sourcePlaceholder: "Paste a log, config or stack trace — or drop a text file here",
+  dropHint: "Drop the file to load it",
+  resultLabel: "Result",
+  copy: "Copy",
+  copied: "Copied",
+  copyFailed: "Couldn't copy — select the text manually",
+  stale: "The input has changed — press “Sanitize” again.",
+  modeLabel: "Replace with",
+  modeErase: "erase",
+  modeRandom: "random text",
+  modeHintPlaceholder: "Each secret is replaced with a placeholder.",
+  modeHintErase: "The secret is removed, its surroundings stay: KEY=abc → KEY=",
+  modeHintRandom: "Random characters of the same length and format; known prefixes (ghp_, AKIA…) are kept.",
+  placeholderLabel: "Placeholder",
+  withType: "include the secret type (<secret:github-pat>)",
+  exclusionsLabel: "Exclusions (regex, one per line)",
+  exclusionsPlaceholder: "^sk-test-\n^dev_\n/^stage_/i",
+  exclusionError: (line: number, message: string) => `Line ${line}: ${message}`,
+  run: "Sanitize",
+  counter: (found: number, replaced: number, excluded: number) =>
+    `Found ${found}, replaced ${replaced}, excluded ${excluded}`,
+  nothingFound: "No secrets found.",
+  tooLarge: (size: string, limit: string) => `The text is too large: ${size}, the limit is ${limit}.`,
+  notText: "This doesn't look like a text file.",
+  failed: "Couldn't process the text.",
+  findingsTitle: "Findings",
+  excludedTitle: "Excluded (left in the text)",
+  line: (n: number) => `line ${n}`,
+  showInSource: "Show in the input",
+  footer:
+    "Detection uses regular expressions and entropy (gitleaks rules plus our own). Keys are not checked for validity: misses and false positives are possible.",
+  version: (gitleaks: string) => `· gitleaks rules ${gitleaks}`,
+  sizeUnits: ["B", "KB", "MB"] as const,
+};
+
+export type Strings = typeof en;

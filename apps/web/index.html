@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Sanitar</title>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <h1 data-i18n="title"></h1>
+        <p class="trust"><span class="dot" aria-hidden="true"></span><span data-i18n="trust"></span></p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panes">
+        <div class="pane" id="source-pane">
+          <div class="pane-head">
+            <label for="source" data-i18n="sourceLabel"></label>
+            <span class="muted small" id="source-size"></span>
+          </div>
+          <textarea id="source" wrap="off" spellcheck="false" autocomplete="off" data-i18n-placeholder="sourcePlaceholder"></textarea>
+          <div class="drop-hint" data-i18n="dropHint" aria-hidden="true"></div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            <label for="result" data-i18n="resultLabel"></label>
+            <button type="button" id="copy" class="secondary" disabled data-i18n="copy"></button>
+          </div>
+          <textarea id="result" wrap="off" spellcheck="false" readonly></textarea>
+          <p class="stale small" id="stale" hidden data-i18n="stale"></p>
+        </div>
+      </section>
+
+      <section class="controls">
+        <fieldset class="modes">
+          <legend data-i18n="modeLabel"></legend>
+          <label><input type="radio" name="mode" value="placeholder" /> <code>&lt;secret&gt;</code></label>
+          <label><input type="radio" name="mode" value="erase" /> <span data-i18n="modeErase"></span></label>
+          <label><input type="radio" name="mode" value="random" /> <span data-i18n="modeRandom"></span></label>
+          <p class="muted small" id="mode-hint"></p>
+        </fieldset>
+
+        <fieldset id="placeholder-opts">
+          <legend data-i18n="placeholderLabel"></legend>
+          <input type="text" id="placeholder" maxlength="200" spellcheck="false" />
+          <label class="check"><input type="checkbox" id="with-type" /> <span data-i18n="withType"></span></label>
+        </fieldset>
+
+        <fieldset class="exclusions">
+          <legend><label for="exclusions" data-i18n="exclusionsLabel"></label></legend>
+          <textarea id="exclusions" rows="4" wrap="off" spellcheck="false" data-i18n-placeholder="exclusionsPlaceholder"></textarea>
+          <ul class="errors small" id="exclusion-errors"></ul>
+        </fieldset>
+
+        <div class="run">
+          <button type="button" id="run" class="primary"><span data-i18n="run"></span> <kbd id="shortcut"></kbd></button>
+          <p class="counter" id="counter" aria-live="polite"></p>
+          <p class="error small" id="run-error" role="alert" hidden></p>
+        </div>
+      </section>
+
+      <section class="findings" id="findings-section" hidden>
+        <h2 data-i18n="findingsTitle"></h2>
+        <ol id="findings"></ol>
+        <div id="excluded-block" hidden>
+          <h3 data-i18n="excludedTitle"></h3>
+          <ol id="excluded" class="excluded"></ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap muted small"><span data-i18n="footer"></span> <span id="version"></span></footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

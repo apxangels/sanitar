@@ -1,0 +1,24 @@
+{
+  "name": "@sanitar/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Secret detection and replacement engine. Zero runtime dependencies; runs in browsers, Node and MV3 service workers.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

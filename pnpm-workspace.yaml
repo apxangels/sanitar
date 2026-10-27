@@ -1,0 +1,7 @@
+packages:
+  - packages/*
+  - apps/*
+
+# esbuild (via tsx) ships prebuilt binaries; its postinstall is only a sanity check.
+allowBuilds:
+  esbuild: true
