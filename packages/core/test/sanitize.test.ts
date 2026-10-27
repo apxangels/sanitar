@@ -106,6 +106,36 @@ describe("detection details", () => {
     expect(r.text).toBe("DATABASE_URL=postgres://app:<secret>@db.internal:5432/main");
   });
 
+  it("password in user:password@host without a scheme", () => {
+    const pw = fake.password();
+    const text = [
+      `ssh abs:${pw}@192.168.100.1`,
+      `sshpass scp file.txt deploy:${pw}@build-01.internal:/srv/`,
+      `rsync -a ./ "admin:${pw}@[fd00::1]:/backup"`,
+      `HOST=root:${pw}@localhost`,
+    ].join("\n");
+    expect(sanitize(text, { mode: "placeholder" }).text).toBe(
+      [
+        "ssh abs:<secret>@192.168.100.1",
+        "sshpass scp file.txt deploy:<secret>@build-01.internal:/srv/",
+        'rsync -a ./ "admin:<secret>@[fd00::1]:/backup"',
+        "HOST=root:<secret>@localhost",
+      ].join("\n"),
+    );
+  });
+
+  it("user:x@host look-alikes are not passwords", () => {
+    const text = [
+      "Contact: mailto:john@example.com",
+      "npm i lodash@4.17.21 react:npm:react@18.3.1",
+      "image: nginx:1.27@sha256",
+      "git clone git@github.com:org/repo.git",
+      "meeting at 12:30@office",
+      "ssh deploy@192.168.100.1",
+    ].join("\n");
+    expect(scan(text).findings.filter((f) => f.ruleId === "host-password")).toEqual([]);
+  });
+
   it("password / secret in configs, quoted with spaces", () => {
     const r = sanitize(`password: "correct horse battery"\nclient_secret = '${fake.password()}'\n`, { mode: "placeholder" });
     expect(r.text).toBe(`password: "<secret>"\nclient_secret = '<secret>'\n`);

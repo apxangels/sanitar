@@ -70,6 +70,33 @@ export const customRules: CustomRuleDef[] = [
     allowlists: [PLACEHOLDER_VALUES],
   },
   {
+    id: "host-password",
+    description: "Password in user:password@host without a scheme (ssh, scp, rsync, sshpass…).",
+    // The user must start with a letter (so `12:30@office` doesn't match) and must not
+    // follow `/` or `:` (URLs with a scheme are url-password's job). The host must look
+    // like a host: IPv4, [IPv6], localhost or a name with a letter, so npm-style
+    // `npm:lodash@4.17.21` doesn't match.
+    regex:
+      /(?:^|[\s"'`=(<,;])([A-Za-z_][\w.+%-]{0,63}):([^\s@:/'"`<>]{1,128})@(?:\[[0-9A-Fa-f:.]+\]|(?:\d{1,3}\.){3}\d{1,3}|[A-Za-z0-9-]*[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*)(?=$|[\s:/'"`>),;?#])/gm,
+    secretGroup: 2,
+    keywords: ["@"],
+    specificity: Specificity.Contextual,
+    allowlists: [
+      PLACEHOLDER_VALUES,
+      {
+        condition: "OR",
+        regexTarget: "match",
+        regexes: [
+          // URI schemes that are followed by an address, not credentials:
+          // mailto:john@example.com, npm:pkg@latest, docker image:tag@sha256:…
+          /^[\s"'`=(<,;]?(?:mailto|sip|sips|xmpp|im|pres|tel|urn|cid|mid|news|npm|jsr|pkg|workspace|link|file|portal|patch)\s*:/i,
+          /@sha(?:1|256|384|512)$/i,
+        ],
+        stopwords: [],
+      },
+    ],
+  },
+  {
     id: "authorization-header",
     description: "Credentials in an Authorization header (Bearer / Basic / token).",
     regex: /\bauthorization["']?[ \t]*[:=][ \t]*["']?(?:bearer|basic|token)[ \t]+([A-Za-z0-9\-._~+/]{8,}=*)/gi,
