@@ -10,7 +10,7 @@
   "scripts": {
     "import-rules": "tsx scripts/import-gitleaks-rules.ts",
     "build": "pnpm -r --workspace-concurrency=1 build",
-    "test": "pnpm -r --workspace-concurrency=1 test && vitest run",
+    "test": "pnpm --filter @sanitar/core build && pnpm -r --workspace-concurrency=1 test && vitest run",
     "typecheck": "pnpm -r typecheck && tsc -p scripts/tsconfig.json",
     "dev": "pnpm --filter @sanitar/core build && pnpm --parallel --filter @sanitar/web --filter @sanitar/server dev",
     "start": "node apps/server/dist/index.js"
