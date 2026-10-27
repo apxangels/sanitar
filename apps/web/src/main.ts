@@ -30,6 +30,7 @@ const modeHint = $<HTMLParagraphElement>("mode-hint");
 const placeholderOpts = $<HTMLFieldSetElement>("placeholder-opts");
 const placeholderInput = $<HTMLInputElement>("placeholder");
 const withType = $<HTMLInputElement>("with-type");
+const piiToggle = $<HTMLInputElement>("pii");
 const exclusions = $<HTMLTextAreaElement>("exclusions");
 const exclusionErrors = $<HTMLUListElement>("exclusion-errors");
 const runBtn = $<HTMLButtonElement>("run");
@@ -56,6 +57,7 @@ function readSettings(): Settings {
     placeholder: placeholderInput.value,
     placeholderWithType: withType.checked,
     exclusions: exclusions.value,
+    pii: piiToggle.checked,
   };
 }
 
@@ -64,6 +66,7 @@ function renderSettings(): void {
   placeholderInput.value = settings.placeholder;
   withType.checked = settings.placeholderWithType;
   exclusions.value = settings.exclusions;
+  piiToggle.checked = settings.pii;
   updateModeUi();
   validateExclusions();
 }
@@ -86,6 +89,7 @@ function onSettingsChange(): void {
 for (const r of modeRadios) r.addEventListener("change", onSettingsChange);
 placeholderInput.addEventListener("input", onSettingsChange);
 withType.addEventListener("change", onSettingsChange);
+piiToggle.addEventListener("change", onSettingsChange);
 exclusions.addEventListener("input", () => {
   onSettingsChange();
   validateExclusions();
@@ -157,6 +161,7 @@ function run(): void {
       placeholder: s.placeholder,
       placeholderWithType: s.placeholderWithType,
       exclusions: exclusionLines(),
+      pii: s.pii,
     });
   } catch {
     // deliberately no details: an error message must never echo the text

@@ -59,6 +59,17 @@ describe("API", () => {
     expect(res.json().findings).toHaveLength(1);
   });
 
+  it("pii option: on by default, can be switched off", async () => {
+    const a = await app();
+    const text = `email: ivan.petrov@example.com\nx=${fakeToken()}\n`;
+    const ids = async (url: string, extra: object) =>
+      (await a.inject({ method: "POST", url, payload: { text, mode: "erase", ...extra } })).json().findings.map((f: { ruleId: string }) => f.ruleId);
+    expect(await ids("/api/sanitize", {})).toEqual(["email", "github-pat"]);
+    expect(await ids("/api/sanitize", { pii: false })).toEqual(["github-pat"]);
+    const scanRes = await a.inject({ method: "POST", url: "/api/scan", payload: { text, pii: false } });
+    expect(scanRes.json().findings).toHaveLength(1);
+  });
+
   it("validates the body", async () => {
     const a = await app();
     expect((await a.inject({ method: "POST", url: "/api/sanitize", payload: { text: "x", mode: "nope" } })).statusCode).toBe(400);

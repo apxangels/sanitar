@@ -2,7 +2,7 @@
  * Our own rules on top of gitleaks. They are tuned for pasted logs/configs
  * rather than git history, so they are a bit more aggressive than gitleaks.
  */
-import { Specificity, type Allowlist } from "./types.js";
+import { Specificity, type Allowlist, type Category } from "./types.js";
 
 export interface CustomRuleDef {
   id: string;
@@ -15,10 +15,14 @@ export interface CustomRuleDef {
   specificity: Specificity;
   prefixes?: string[];
   preserve?: RegExp;
+  /** default "secret" */
+  category?: Category;
+  /** extra check on the found value (e.g. Luhn for card numbers) */
+  validate?: (value: string) => boolean;
 }
 
 /** Values that are obviously placeholders/templating, not secrets. */
-const PLACEHOLDER_VALUES: Allowlist = {
+export const PLACEHOLDER_VALUES: Allowlist = {
   condition: "OR",
   regexTarget: "secret",
   regexes: [
@@ -30,7 +34,7 @@ const PLACEHOLDER_VALUES: Allowlist = {
 };
 
 /** Values that are references to variables/fields in code, e.g. `password = self.password`. */
-const CODE_REFERENCES: Allowlist = {
+export const CODE_REFERENCES: Allowlist = {
   condition: "OR",
   regexTarget: "secret",
   regexes: [
@@ -41,11 +45,28 @@ const CODE_REFERENCES: Allowlist = {
 };
 
 /** Key names that mention a password but don't hold one (password_length, secretName…). */
-const NON_SECRET_KEYS: Allowlist = {
+export const NON_SECRET_KEYS: Allowlist = {
   condition: "OR",
   regexTarget: "match",
   regexes: [
     /(?:password|passwd|pwd|secret|passphrase)[\w.-]*?(?:length|len|size|name|names|hash|hashed|policy|reset|file|path|dir|id|ids|type|ref|field|label|prompt|placeholder|hint|regex|pattern|rule|rules|expiry|expires|expiration|age|count|strength|manager|provider|store|arn|version|enabled|required|confirm|confirmation|changed|updated|forgot|ttl|timeout|format|mode|visible|toggle)["']?[ \t]*(?:=>|:=|=|:)/i,
+  ],
+  stopwords: [],
+};
+
+/** Values that are code, not data: `token = token`, `x = response.data.x`, `= await …`. */
+export const CODE_VALUES: Allowlist = {
+  condition: "OR",
+  regexTarget: "secret",
+  regexes: [
+    // `token = token`, `apiKey: accessKey` — a variable name, not a value
+    /^[a-z_][\w]*(?:key|token|credentials?)$/i,
+    // `token = response.data.token`
+    /^[a-z_$][\w$]*(?:\.[a-z_$][\w$]*)+$/i,
+    // `token: 4096` in limits/usage stats, `key: 1`
+    /^\d{1,6}$/,
+    // `const token = await fetchToken()`
+    /^(?:await|new|yield|typeof|async|function|require|import|lambda|fn|func|def|var|let|const|static|readonly|public|private|protected)$/,
   ],
   stopwords: [],
 };
@@ -141,21 +162,7 @@ export const customRules: CustomRuleDef[] = [
     allowlists: [
       PLACEHOLDER_VALUES,
       CODE_REFERENCES,
-      {
-        condition: "OR",
-        regexTarget: "secret",
-        regexes: [
-          // `token = token`, `apiKey: accessKey` — a variable name, not a value
-          /^[a-z_][\w]*(?:key|token|credentials?)$/i,
-          // `token = response.data.token`
-          /^[a-z_$][\w$]*(?:\.[a-z_$][\w$]*)+$/i,
-          // `token: 4096` in limits/usage stats, `key: 1`
-          /^\d{1,6}$/,
-          // `const token = await fetchToken()`
-          /^(?:await|new|yield|typeof|async|function|require|import|lambda|fn|func|def|var|let|const|static|readonly|public|private|protected)$/,
-        ],
-        stopwords: [],
-      },
+      CODE_VALUES,
     ],
   },
 ];

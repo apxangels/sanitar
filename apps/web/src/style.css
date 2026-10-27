@@ -91,7 +91,7 @@ textarea.invalid { border-color: var(--danger); }
 
 .controls {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) minmax(260px, 1.4fr) auto;
+  grid-template-columns: auto minmax(190px, 1fr) minmax(190px, 1fr) minmax(240px, 1.3fr) auto;
   gap: 16px;
   align-items: start;
   margin-top: 16px;
@@ -105,6 +105,8 @@ legend { font-weight: 600; padding: 0; margin-bottom: 6px; }
 .modes label { display: block; margin: 2px 0; cursor: pointer; white-space: nowrap; }
 .modes p { margin: 6px 0 0; max-width: 28ch; }
 .check { display: flex; gap: 6px; align-items: flex-start; margin-top: 8px; font-size: 13px; cursor: pointer; }
+.detect .check:first-of-type { margin-top: 0; }
+.check:has(input:disabled) { cursor: default; color: var(--muted); }
 .dim { opacity: 0.5; }
 #exclusions { resize: vertical; min-height: 76px; }
 .errors { list-style: none; margin: 6px 0 0; padding: 0; color: var(--danger); }

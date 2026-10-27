@@ -66,10 +66,10 @@ function lineAround(text: string, start: number, end: number): string {
 
 /**
  * Runs every rule over the text: keyword prefilter → regex → entropy →
- * rule allowlists → global allowlists. Returns raw (possibly overlapping)
+ * validate → rule allowlists → global allowlists. Returns raw (possibly overlapping)
  * findings in rule order.
  */
-export function detect(text: string, onlyRules?: ReadonlySet<string>): RawFinding[] {
+export function detect(text: string, onlyRules?: ReadonlySet<string>, includePii = true): RawFinding[] {
   if (text.length === 0) return [];
   const { rules, globalAllowlists } = getRules();
   const lower = text.toLowerCase();
@@ -86,6 +86,7 @@ export function detect(text: string, onlyRules?: ReadonlySet<string>): RawFindin
   const out: RawFinding[] = [];
   rules.forEach((rule, ruleIndex) => {
     if (onlyRules && !onlyRules.has(rule.id)) return;
+    if (!includePii && rule.category === "pii") return;
     if (rule.keywords.length > 0 && !rule.keywords.some(hasKeyword)) return;
 
     let prevEnd = 0;
@@ -103,6 +104,7 @@ export function detect(text: string, onlyRules?: ReadonlySet<string>): RawFindin
       if (!span) continue;
       const [start, end] = span;
       const secret = text.slice(start, end);
+      if (rule.validate && !rule.validate(secret)) continue;
 
       if (rule.entropy > 0) {
         if (shannonEntropy(secret) <= rule.entropy) continue;

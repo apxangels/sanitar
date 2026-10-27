@@ -1,6 +1,6 @@
 # Sanitar
 
-Finds secrets in text (API keys, tokens, private keys, passwords, connection strings) and replaces them. Copy a log, config or stack trace, run it through Sanitar, and paste the cleaned version into a chat, a ticket or an AI assistant.
+Finds secrets (API keys, tokens, private keys, passwords, connection strings) and personal data (emails, phone numbers, card numbers, names, birth dates) in text and replaces them. Copy a log, config or stack trace, run it through Sanitar, and paste the cleaned version into a chat, a ticket or an AI assistant.
 
 **The text is processed right in your browser.** The page bundles the detection engine and never sends the text anywhere. The Content Security Policy sets `connect-src 'none'`, so the browser itself blocks any network request from the page; you can confirm it in DevTools → Network. The HTTP API on the server exists only for curl/CLI use.
 
@@ -82,9 +82,10 @@ curl -s -X POST localhost:8080/api/scan -H 'content-type: application/json' -d '
 curl -s localhost:8080/healthz
 ```
 
-**Request body:** `{ text, mode: "placeholder" | "erase" | "random", placeholder?, placeholderWithType?, exclusions?: string[] }`.
+**Request body:** `{ text, mode: "placeholder" | "erase" | "random", placeholder?, placeholderWithType?, exclusions?: string[], pii?: boolean }`. `pii` (default `true`) also finds personal data; `/api/scan` accepts `pii` too.
 
 **Response:** the same result as `sanitize()` in the UI.
+- Each finding has a `category`: `"secret"` or `"pii"`.
 - `start`/`end` are offsets in the original text, in UTF-16 code units, like JavaScript strings.
 - The secret itself is never returned. Each finding has only a `preview`: the first 4 characters, or just `…` for short secrets.
 
@@ -103,6 +104,11 @@ curl -s localhost:8080/healthz
   - `password=` / `passwd:` / `secret:` in configs and `.env`;
   - `ACCESS_KEY=` / `api_key:` / `token=` in configs and `.env`;
   - `Authorization: Bearer/Basic …`.
+- **Personal data** (`packages/core/src/rules/pii.ts`, can be switched off in the UI or with `pii: false`):
+  - emails;
+  - phone numbers: any format with `+` and a country code, Russian `8 (999) 123-45-67`, North American `(555) 123-4567` / `555-123-4567`. Plain digit runs without `+` or separators are not treated as phones, so IDs and timestamps don't match;
+  - card numbers that pass the Luhn check (masked ones like `4111-XXXX-XXXX-8824` are left alone);
+  - values of personal fields by name: `first_name`, `lastName`, `full_name`, `birth_date`, `dob`, `passport`, `ssn`, `snils`, `phone`, `mobile`…
 - **Pipeline:**
   1. keyword prefilter;
   2. regex;
@@ -116,6 +122,7 @@ curl -s localhost:8080/healthz
 - **Regexes and entropy only.** Detection is based on regular expressions and entropy. Keys are not checked for validity, and no service is contacted.
 - **Misses are possible.** A secret with no recognizable format and no hint like `password=` next to it won't be found.
 - **False positives are possible.** Random strings can look like tokens. Review the result before sending it.
+- **Names and addresses in free text are not found.** Regexes can't tell "Ivan Petrov" from any other two words; they are only found when the field name says what they are (`"first_name": "Ivan"`).
 - **File-path rules apply to all text.** Some gitleaks rules are tied to file names (`*.tf`, `*.yaml`, `nuget.config`). They apply to all text, because pasted text has no file name.
 - **Size limit.** The maximum text size is 1 MiB.
 

@@ -1,8 +1,9 @@
 import gitleaksData from "./gitleaks.json" with { type: "json" };
 import { customRules } from "./custom.js";
+import { piiRules } from "./pii.js";
 import { Specificity, type Allowlist, type RegexTarget, type Rule } from "./types.js";
 
-export type { Allowlist, Rule } from "./types.js";
+export type { Allowlist, Category, Rule } from "./types.js";
 export { Specificity } from "./types.js";
 
 interface JsonRegex {
@@ -70,7 +71,7 @@ export function getRules(): { rules: Rule[]; globalAllowlists: Allowlist[] } {
   if (cache) return cache;
 
   const rules: Rule[] = [];
-  for (const def of customRules) {
+  for (const def of [...customRules, ...piiRules]) {
     rules.push({
       id: def.id,
       description: def.description,
@@ -82,7 +83,9 @@ export function getRules(): { rules: Rule[]; globalAllowlists: Allowlist[] } {
       specificity: def.specificity,
       prefixes: def.prefixes ?? [],
       ...(def.preserve ? { preserve: def.preserve } : {}),
+      ...(def.validate ? { validate: def.validate } : {}),
       requireDigit: false,
+      category: def.category ?? "secret",
     });
   }
   for (const r of data.rules) {
@@ -101,6 +104,7 @@ export function getRules(): { rules: Rule[]; globalAllowlists: Allowlist[] } {
       // gitleaks keywords are usually the token prefix (ghp_, xoxb-, akia…)
       prefixes: generic ? [] : r.keywords,
       requireDigit: generic,
+      category: "secret",
     });
   }
   cache = { rules, globalAllowlists: data.globalAllowlists.map(compileAllowlist) };

@@ -70,6 +70,8 @@
 5. **Пользовательские исключения** (см. ниже).
 6. **Слияние пересечений.** Если находки перекрываются, объединяем их в одну с самым специфичным `ruleId` (не generic). Generic-правила проигрывают конкретным.
 
+Персональные данные (категория `pii`, файл `rules/pii.ts`): email, телефоны, номера карт (с проверкой Luhn), значения полей `first_name`/`birth_date`/`passport`/`phone`… Опция `pii?: boolean` в `scan`/`sanitize` и в API (по умолчанию `true`), в UI — чекбокс. У `Finding` есть поле `category: "secret" | "pii"`.
+
 Дополнительно в `custom.ts` добавить правила, которых может не быть в gitleaks или которые нам важны: блоки `-----BEGIN ... PRIVATE KEY-----` целиком (многострочные), пароли в URL (`scheme://user:PASSWORD@host`), `password=` / `passwd:` / `secret:` в конфигах и `.env`, `Authorization: Bearer ...`.
 
 ### Лимиты

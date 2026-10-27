@@ -8,14 +8,20 @@ export interface SanitizeOptions {
   placeholderWithType?: boolean;
   /** user regexes (sources, optionally "/pattern/flags") */
   exclusions?: string[];
+  /** also find personal data (emails, phones, card numbers, names…); default true */
+  pii?: boolean;
 }
 
 export interface ScanOptions {
   exclusions?: string[];
+  /** default true */
+  pii?: boolean;
 }
 
 export interface Finding {
   ruleId: string;
+  /** "secret" (credentials) or "pii" (personal data) */
+  category: "secret" | "pii";
   description: string;
   /** offset of the secret in the original text (UTF-16 code units) */
   start: number;

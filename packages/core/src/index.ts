@@ -10,6 +10,7 @@ import { assertInputSize, PREVIEW_MIN_LENGTH, PREVIEW_PREFIX_LENGTH } from "./li
 import { applyReplacements, mergeOverlaps, withoutOverlaps, type Region } from "./replace.js";
 import type { Finding, Mode, SanitizeOptions, SanitizeResult, ScanOptions, ScanResult } from "./types.js";
 
+export type { Category } from "./rules/index.js";
 export type { ExclusionError, Finding, Mode, SanitizeOptions, SanitizeResult, ScanOptions, ScanResult } from "./types.js";
 export { InputTooLargeError, MAX_INPUT_BYTES, utf8ByteLength } from "./limits.js";
 export { compileExclusions } from "./exclusions.js";
@@ -43,10 +44,10 @@ interface Analysis extends ScanResult {
   regions: Region[];
 }
 
-function analyze(text: string, exclusions: readonly string[] | undefined): Analysis {
+function analyze(text: string, exclusions: readonly string[] | undefined, pii: boolean): Analysis {
   assertInputSize(text);
   const ex = compileExclusions(exclusions);
-  const raw = detect(text);
+  const raw = detect(text, undefined, pii);
 
   const kept = [];
   const dropped = [];
@@ -62,6 +63,7 @@ function analyze(text: string, exclusions: readonly string[] | undefined): Analy
   const lineOf = lineIndex(text);
   const toFinding = (r: Region): Finding => ({
     ruleId: r.rule.id,
+    category: r.rule.category,
     description: r.rule.description,
     start: r.start,
     end: r.end,
@@ -79,14 +81,14 @@ function analyze(text: string, exclusions: readonly string[] | undefined): Analy
 
 /** Finds secrets without changing the text. */
 export function scan(text: string, opts: ScanOptions = {}): ScanResult {
-  const { findings, excluded, errors } = analyze(text, opts.exclusions);
+  const { findings, excluded, errors } = analyze(text, opts.exclusions, opts.pii ?? true);
   return { findings, excluded, errors };
 }
 
 /** Finds secrets and replaces them according to `opts.mode`. */
 export function sanitize(text: string, opts: SanitizeOptions): SanitizeResult {
   if (!MODES.includes(opts.mode)) throw new Error(`unknown mode: ${String(opts.mode)}`);
-  const { regions, findings, excluded, errors } = analyze(text, opts.exclusions);
+  const { regions, findings, excluded, errors } = analyze(text, opts.exclusions, opts.pii ?? true);
   const out = applyReplacements(text, regions, {
     mode: opts.mode,
     placeholder: opts.placeholder || DEFAULT_PLACEHOLDER,

@@ -23,6 +23,9 @@ export const Specificity = {
 } as const;
 export type Specificity = (typeof Specificity)[keyof typeof Specificity];
 
+/** "secret": credentials. "pii": personal data (emails, phones, names…), can be switched off. */
+export type Category = "secret" | "pii";
+
 export interface Rule {
   id: string;
   description: string;
@@ -52,4 +55,7 @@ export interface Rule {
   preserve?: RegExp;
   /** gitleaks quirk: generic rules require at least one digit in the secret */
   requireDigit: boolean;
+  category: Category;
+  /** extra check on the found value; the finding is dropped when it returns false */
+  validate?: (value: string) => boolean;
 }
