@@ -21,8 +21,11 @@ export const en = {
   detectLabel: "Find",
   detectSecrets: "secrets (keys, tokens, passwords)",
   detectPii: "personal data (emails, phones, card numbers, names, birth dates)",
-  exclusionsLabel: "Exclusions (regex, one per line)",
+  exclusionsLabel: "Never replace: exclusions (regex, one per line)",
   exclusionsPlaceholder: "^sk-test-\n^dev_\n/^stage_/i",
+  extraRulesLabel: "Also replace: your rules (regex, one per line)",
+  extraRulesPlaceholder: "[\\w.]+@corp\\.example\nticket=(SEC-\\d+)",
+  extraRulesHint: "For things the built-in rules miss. With a (group), only the group is replaced.",
   exclusionError: (line: number, message: string) => `Line ${line}: ${message}`,
   run: "Sanitize",
   counter: (found: number, replaced: number, excluded: number) =>

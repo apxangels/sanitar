@@ -58,11 +58,20 @@
           <label class="check"><input type="checkbox" id="pii" /> <span data-i18n="detectPii"></span></label>
         </fieldset>
 
-        <fieldset class="exclusions">
-          <legend><label for="exclusions" data-i18n="exclusionsLabel"></label></legend>
-          <textarea id="exclusions" rows="4" wrap="off" spellcheck="false" data-i18n-placeholder="exclusionsPlaceholder"></textarea>
-          <ul class="errors small" id="exclusion-errors"></ul>
-        </fieldset>
+        <div class="rules">
+          <fieldset class="exclusions">
+            <legend><label for="exclusions" data-i18n="exclusionsLabel"></label></legend>
+            <textarea id="exclusions" rows="3" wrap="off" spellcheck="false" data-i18n-placeholder="exclusionsPlaceholder"></textarea>
+            <ul class="errors small" id="exclusion-errors"></ul>
+          </fieldset>
+
+          <fieldset class="extra-rules">
+            <legend><label for="extra-rules" data-i18n="extraRulesLabel"></label></legend>
+            <textarea id="extra-rules" rows="3" wrap="off" spellcheck="false" data-i18n-placeholder="extraRulesPlaceholder" aria-describedby="extra-rules-hint"></textarea>
+            <p class="muted small hint" id="extra-rules-hint" data-i18n="extraRulesHint"></p>
+            <ul class="errors small" id="extra-rule-errors"></ul>
+          </fieldset>
+        </div>
 
         <div class="run">
           <button type="button" id="run" class="primary"><span data-i18n="run"></span> <kbd id="shortcut"></kbd></button>

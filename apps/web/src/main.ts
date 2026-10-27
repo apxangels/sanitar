@@ -1,6 +1,7 @@
 import "./style.css";
 import {
   compileExclusions,
+  compileUserRules,
   GITLEAKS_VERSION,
   MAX_INPUT_BYTES,
   sanitize,
@@ -33,6 +34,8 @@ const withType = $<HTMLInputElement>("with-type");
 const piiToggle = $<HTMLInputElement>("pii");
 const exclusions = $<HTMLTextAreaElement>("exclusions");
 const exclusionErrors = $<HTMLUListElement>("exclusion-errors");
+const extraRules = $<HTMLTextAreaElement>("extra-rules");
+const extraRuleErrors = $<HTMLUListElement>("extra-rule-errors");
 const runBtn = $<HTMLButtonElement>("run");
 const counter = $<HTMLParagraphElement>("counter");
 const runError = $<HTMLParagraphElement>("run-error");
@@ -57,6 +60,7 @@ function readSettings(): Settings {
     placeholder: placeholderInput.value,
     placeholderWithType: withType.checked,
     exclusions: exclusions.value,
+    extraRules: extraRules.value,
     pii: piiToggle.checked,
   };
 }
@@ -66,9 +70,11 @@ function renderSettings(): void {
   placeholderInput.value = settings.placeholder;
   withType.checked = settings.placeholderWithType;
   exclusions.value = settings.exclusions;
+  extraRules.value = settings.extraRules;
   piiToggle.checked = settings.pii;
   updateModeUi();
   validateExclusions();
+  validateExtraRules();
 }
 
 function updateModeUi(): void {
@@ -94,23 +100,43 @@ exclusions.addEventListener("input", () => {
   onSettingsChange();
   validateExclusions();
 });
+extraRules.addEventListener("input", () => {
+  onSettingsChange();
+  validateExtraRules();
+});
 
 function exclusionLines(): string[] {
   return exclusions.value.split("\n");
 }
 
-/** Shows invalid exclusion regexes as you type. */
-function validateExclusions(): void {
-  const { errors } = compileExclusions(exclusionLines());
-  exclusionErrors.replaceChildren(
+function extraRuleLines(): string[] {
+  return extraRules.value.split("\n");
+}
+
+function showPatternErrors(
+  field: HTMLTextAreaElement,
+  list: HTMLUListElement,
+  errors: readonly { line: number; message: string }[],
+): void {
+  list.replaceChildren(
     ...errors.map((e) => {
       const li = document.createElement("li");
       li.textContent = t.exclusionError(e.line, e.message);
       return li;
     }),
   );
-  exclusions.classList.toggle("invalid", errors.length > 0);
-  exclusions.setAttribute("aria-invalid", String(errors.length > 0));
+  field.classList.toggle("invalid", errors.length > 0);
+  field.setAttribute("aria-invalid", String(errors.length > 0));
+}
+
+/** Shows invalid exclusion regexes as you type. */
+function validateExclusions(): void {
+  showPatternErrors(exclusions, exclusionErrors, compileExclusions(exclusionLines()).errors);
+}
+
+/** Same for user rules, compiled by core exactly as sanitize() will. */
+function validateExtraRules(): void {
+  showPatternErrors(extraRules, extraRuleErrors, compileUserRules(extraRuleLines()).errors);
 }
 
 // ---------------------------------------------------------------- processing
@@ -161,6 +187,7 @@ function run(): void {
       placeholder: s.placeholder,
       placeholderWithType: s.placeholderWithType,
       exclusions: exclusionLines(),
+      extraRules: extraRuleLines(),
       pii: s.pii,
     });
   } catch {

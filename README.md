@@ -77,7 +77,7 @@ The opposite of exclusions: your own regular expressions for things to **replace
 ticket=(SEC-\d+)          # with a capture group, only the group is replaced
 ```
 
-Findings get the rule id `user-rule` (`<secret:user-rule>` with the type included). Exclusions apply to them too. Entropy checks and gitleaks allowlists don't: you asked for exactly this. Available in `@sanitar/core` (`SanitizeOptions.extraRules`) and in the HTTP API; the web page doesn't have a field for it yet.
+Findings get the rule id `user-rule` (`<secret:user-rule>` with the type included). Exclusions apply to them too. Entropy checks and gitleaks allowlists don't: you asked for exactly this. Available on the web page (the **Also replace** field under the exclusions, saved with the other settings), in `@sanitar/core` (`SanitizeOptions.extraRules`) and in the HTTP API.
 
 ## HTTP API (Docker / server only)
 

@@ -9,6 +9,8 @@ export interface Settings {
   placeholder: string;
   placeholderWithType: boolean;
   exclusions: string;
+  /** user rules: extra regexes to replace, one per line (core extraRules) */
+  extraRules: string;
   /** also find personal data (emails, phones, cards, names) */
   pii: boolean;
 }
@@ -20,6 +22,7 @@ export const defaults: Settings = {
   placeholder: "<secret>",
   placeholderWithType: false,
   exclusions: "",
+  extraRules: "",
   pii: true,
 };
 
@@ -33,6 +36,7 @@ export function loadSettings(): Settings {
       placeholder: typeof v.placeholder === "string" ? v.placeholder : defaults.placeholder,
       placeholderWithType: typeof v.placeholderWithType === "boolean" ? v.placeholderWithType : defaults.placeholderWithType,
       exclusions: typeof v.exclusions === "string" ? v.exclusions : defaults.exclusions,
+      extraRules: typeof v.extraRules === "string" ? v.extraRules : defaults.extraRules,
       pii: typeof v.pii === "boolean" ? v.pii : defaults.pii,
     };
   } catch {
@@ -42,9 +46,9 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings): void {
   // explicit field list so nothing else (like the text) can slip in
-  const { mode, placeholder, placeholderWithType, exclusions, pii } = s;
+  const { mode, placeholder, placeholderWithType, exclusions, extraRules, pii } = s;
   try {
-    localStorage.setItem(KEY, JSON.stringify({ mode, placeholder, placeholderWithType, exclusions, pii }));
+    localStorage.setItem(KEY, JSON.stringify({ mode, placeholder, placeholderWithType, exclusions, extraRules, pii }));
   } catch {
     // storage disabled/full: settings just won't persist
   }
