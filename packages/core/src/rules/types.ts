@@ -58,4 +58,6 @@ export interface Rule {
   category: Category;
   /** extra check on the found value; the finding is dropped when it returns false */
   validate?: (value: string) => boolean;
+  /** defined by the user (SanitizeOptions.extraRules): global allowlists don't apply */
+  user?: boolean;
 }

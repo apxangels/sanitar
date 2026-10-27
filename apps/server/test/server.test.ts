@@ -55,8 +55,19 @@ describe("API", () => {
   it("POST /api/scan returns findings only", async () => {
     const res = await (await app()).inject({ method: "POST", url: "/api/scan", payload: { text: `x=${fakeToken()}` } });
     expect(res.statusCode).toBe(200);
-    expect(Object.keys(res.json()).sort()).toEqual(["errors", "excluded", "findings"]);
+    expect(Object.keys(res.json()).sort()).toEqual(["errors", "excluded", "findings", "ruleErrors"]);
     expect(res.json().findings).toHaveLength(1);
+  });
+
+  it("extraRules: user regexes are replaced too, invalid ones reported", async () => {
+    const res = await (await app()).inject({
+      method: "POST",
+      url: "/api/sanitize",
+      payload: { text: "order INTERNAL-42", mode: "placeholder", extraRules: ["INTERNAL-\\d+", "(bad"] },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().text).toBe("order <secret>");
+    expect(res.json().ruleErrors).toEqual([expect.objectContaining({ line: 2 })]);
   });
 
   it("pii option: on by default, can be switched off", async () => {

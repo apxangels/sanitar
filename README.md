@@ -68,13 +68,24 @@ Exclusions are regular expressions (JavaScript syntax), one per line. Each one i
 - Empty lines are ignored.
 - There are no comments: `#` above is only for explanation.
 
+## Extra rules (`extraRules`)
+
+The opposite of exclusions: your own regular expressions for things to **replace** that the built-in rules miss (an internal ID format, a specific email domain). Same format as exclusions: one per line, `/pattern/flags` allowed, invalid lines are reported in `ruleErrors` with their line number and skipped.
+
+```
+[\w.]+@corp\.example     # whole match is replaced
+ticket=(SEC-\d+)          # with a capture group, only the group is replaced
+```
+
+Findings get the rule id `user-rule` (`<secret:user-rule>` with the type included). Exclusions apply to them too. Entropy checks and gitleaks allowlists don't: you asked for exactly this. Available in `@sanitar/core` (`SanitizeOptions.extraRules`) and in the HTTP API; the web page doesn't have a field for it yet.
+
 ## HTTP API (Docker / server only)
 
 ```bash
 curl -s -X POST localhost:8080/api/sanitize \
   -H 'content-type: application/json' \
   -d '{"text":"DB_PASSWORD=hunter22\n","mode":"placeholder","placeholderWithType":true}'
-# {"text":"DB_PASSWORD=<secret:password-assignment>\n","findings":[{"ruleId":"password-assignment",…,"line":1,"preview":"…"}],"excluded":[],"errors":[]}
+# {"text":"DB_PASSWORD=<secret:password-assignment>\n","findings":[{"ruleId":"password-assignment",…,"line":1,"preview":"…"}],"excluded":[],"errors":[],"ruleErrors":[]}
 
 # findings only, no replacement
 curl -s -X POST localhost:8080/api/scan -H 'content-type: application/json' -d '{"text":"…","exclusions":["^sk-test-"]}'
@@ -82,7 +93,7 @@ curl -s -X POST localhost:8080/api/scan -H 'content-type: application/json' -d '
 curl -s localhost:8080/healthz
 ```
 
-**Request body:** `{ text, mode: "placeholder" | "erase" | "random", placeholder?, placeholderWithType?, exclusions?: string[], pii?: boolean }`. `pii` (default `true`) also finds personal data; `/api/scan` accepts `pii` too.
+**Request body:** `{ text, mode: "placeholder" | "erase" | "random", placeholder?, placeholderWithType?, exclusions?: string[], extraRules?: string[], pii?: boolean }`. `pii` (default `true`) also finds personal data; `/api/scan` accepts `pii` too.
 
 **Response:** the same result as `sanitize()` in the UI.
 - Each finding has a `category`: `"secret"` or `"pii"`.

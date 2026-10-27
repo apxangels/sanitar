@@ -9,6 +9,18 @@ export interface CompiledExclusions {
 const SLASH_FORM = /^\/(.+)\/([dgimsuvy]*)$/s;
 
 /**
+ * Splits one user-entered line into regex source and flags: "/pattern/flags"
+ * or a plain pattern. Returns null for an empty line. Shared by exclusions and
+ * user rules so both accept exactly the same syntax.
+ */
+export function parseUserPattern(raw: string): { line: string; source: string; flags: string } | null {
+  const line = raw.trim();
+  if (line === "") return null;
+  const m = SLASH_FORM.exec(line);
+  return m ? { line, source: m[1]!, flags: m[2]! } : { line, source: line, flags: "" };
+}
+
+/**
  * Compiles user exclusions. Each entry is a regex source, or "/pattern/flags".
  * Empty entries are ignored. Invalid entries are reported in `errors` (with the
  * 1-based line number) and skipped; the rest still apply.
@@ -19,16 +31,11 @@ export function compileExclusions(lines: readonly string[] | undefined): Compile
   if (!lines) return { regexes, errors };
 
   lines.forEach((raw, i) => {
-    const line = raw.trim();
-    if (line === "") return;
-    let source = line;
-    let flags = "";
-    const m = SLASH_FORM.exec(line);
-    if (m) {
-      source = m[1]!;
-      // g/y make .test() stateful, which would make results depend on order
-      flags = m[2]!.replace(/[gy]/g, "");
-    }
+    const parsed = parseUserPattern(raw);
+    if (!parsed) return;
+    const { line, source } = parsed;
+    // g/y make .test() stateful, which would make results depend on order
+    const flags = parsed.flags.replace(/[gy]/g, "");
     try {
       regexes.push(new RegExp(source, flags));
     } catch (e) {

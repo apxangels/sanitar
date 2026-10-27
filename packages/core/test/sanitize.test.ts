@@ -218,7 +218,7 @@ describe("detection details", () => {
 
 describe("edge cases", () => {
   it("empty text", () => {
-    expect(sanitize("", { mode: "placeholder" })).toEqual({ text: "", findings: [], excluded: [], errors: [] });
+    expect(sanitize("", { mode: "placeholder" })).toEqual({ text: "", findings: [], excluded: [], errors: [], ruleErrors: [] });
   });
 
   it("text without secrets is returned byte for byte", () => {

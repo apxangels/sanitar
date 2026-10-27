@@ -69,9 +69,16 @@ function lineAround(text: string, start: number, end: number): string {
  * validate → rule allowlists → global allowlists. Returns raw (possibly overlapping)
  * findings in rule order.
  */
-export function detect(text: string, onlyRules?: ReadonlySet<string>, includePii = true): RawFinding[] {
+export function detect(
+  text: string,
+  onlyRules?: ReadonlySet<string>,
+  includePii = true,
+  extraRules: readonly Rule[] = [],
+): RawFinding[] {
   if (text.length === 0) return [];
-  const { rules, globalAllowlists } = getRules();
+  const builtIn = getRules();
+  const rules = extraRules.length > 0 ? [...builtIn.rules, ...extraRules] : builtIn.rules;
+  const { globalAllowlists } = builtIn;
   const lower = text.toLowerCase();
   const keywordSeen = new Map<string, boolean>();
   const hasKeyword = (k: string): boolean => {
@@ -118,7 +125,7 @@ export function detect(text: string, onlyRules?: ReadonlySet<string>, includePii
         line: () => (lineCache ??= lineAround(text, mStart, mEnd)),
       };
       if (rule.allowlists.some((al) => allowedBy(al, ctx))) continue;
-      if (globalAllowlists.some((al) => allowedBy(al, ctx))) continue;
+      if (!rule.user && globalAllowlists.some((al) => allowedBy(al, ctx))) continue;
 
       out.push({ rule, ruleIndex, start, end });
     }

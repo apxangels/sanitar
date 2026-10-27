@@ -41,6 +41,7 @@ const sanitizeSchema = {
       placeholder: { type: "string", maxLength: 200 },
       placeholderWithType: { type: "boolean" },
       exclusions: exclusionsSchema,
+      extraRules: exclusionsSchema,
       pii: { type: "boolean" },
     },
   },
@@ -54,6 +55,7 @@ const scanSchema = {
     properties: {
       text: { type: "string" },
       exclusions: exclusionsSchema,
+      extraRules: exclusionsSchema,
       pii: { type: "boolean" },
     },
   },
@@ -65,12 +67,14 @@ interface SanitizeBody {
   placeholder?: string;
   placeholderWithType?: boolean;
   exclusions?: string[];
+  extraRules?: string[];
   pii?: boolean;
 }
 
 interface ScanBody {
   text: string;
   exclusions?: string[];
+  extraRules?: string[];
   pii?: boolean;
 }
 
@@ -145,7 +149,8 @@ export async function buildApp(opts: AppOptions = {}) {
   });
 
   app.post<{ Body: ScanBody }>("/api/scan", { schema: scanSchema }, async (req) => {
-    return scan(req.body.text, { exclusions: req.body.exclusions ?? [], pii: req.body.pii ?? true });
+    const { exclusions = [], extraRules = [], pii = true } = req.body;
+    return scan(req.body.text, { exclusions, extraRules, pii });
   });
 
   if (opts.webRoot && existsSync(opts.webRoot)) {

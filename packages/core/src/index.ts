@@ -6,6 +6,7 @@
  */
 import { detect } from "./detect.js";
 import { compileExclusions, isExcluded } from "./exclusions.js";
+import { compileUserRules } from "./user-rules.js";
 import { assertInputSize, PREVIEW_MIN_LENGTH, PREVIEW_PREFIX_LENGTH } from "./limits.js";
 import { applyReplacements, mergeOverlaps, withoutOverlaps, type Region } from "./replace.js";
 import type { Finding, Mode, SanitizeOptions, SanitizeResult, ScanOptions, ScanResult } from "./types.js";
@@ -14,6 +15,7 @@ export type { Category } from "./rules/index.js";
 export type { ExclusionError, Finding, Mode, SanitizeOptions, SanitizeResult, ScanOptions, ScanResult } from "./types.js";
 export { InputTooLargeError, MAX_INPUT_BYTES, utf8ByteLength } from "./limits.js";
 export { compileExclusions } from "./exclusions.js";
+export { compileUserRules, USER_RULE_ID } from "./user-rules.js";
 export { shannonEntropy } from "./entropy.js";
 export { GITLEAKS_VERSION } from "./rules/index.js";
 
@@ -44,10 +46,16 @@ interface Analysis extends ScanResult {
   regions: Region[];
 }
 
-function analyze(text: string, exclusions: readonly string[] | undefined, pii: boolean): Analysis {
+function analyze(
+  text: string,
+  exclusions: readonly string[] | undefined,
+  pii: boolean,
+  extraRules: readonly string[] | undefined,
+): Analysis {
   assertInputSize(text);
   const ex = compileExclusions(exclusions);
-  const raw = detect(text, undefined, pii);
+  const user = compileUserRules(extraRules);
+  const raw = detect(text, undefined, pii, user.rules);
 
   const kept = [];
   const dropped = [];
@@ -76,23 +84,29 @@ function analyze(text: string, exclusions: readonly string[] | undefined, pii: b
     findings: regions.map(toFinding),
     excluded: excludedRegions.map(toFinding),
     errors: ex.errors,
+    ruleErrors: user.errors,
   };
 }
 
 /** Finds secrets without changing the text. */
 export function scan(text: string, opts: ScanOptions = {}): ScanResult {
-  const { findings, excluded, errors } = analyze(text, opts.exclusions, opts.pii ?? true);
-  return { findings, excluded, errors };
+  const { findings, excluded, errors, ruleErrors } = analyze(text, opts.exclusions, opts.pii ?? true, opts.extraRules);
+  return { findings, excluded, errors, ruleErrors };
 }
 
 /** Finds secrets and replaces them according to `opts.mode`. */
 export function sanitize(text: string, opts: SanitizeOptions): SanitizeResult {
   if (!MODES.includes(opts.mode)) throw new Error(`unknown mode: ${String(opts.mode)}`);
-  const { regions, findings, excluded, errors } = analyze(text, opts.exclusions, opts.pii ?? true);
+  const { regions, findings, excluded, errors, ruleErrors } = analyze(
+    text,
+    opts.exclusions,
+    opts.pii ?? true,
+    opts.extraRules,
+  );
   const out = applyReplacements(text, regions, {
     mode: opts.mode,
     placeholder: opts.placeholder || DEFAULT_PLACEHOLDER,
     placeholderWithType: opts.placeholderWithType ?? false,
   });
-  return { text: out, findings, excluded, errors };
+  return { text: out, findings, excluded, errors, ruleErrors };
 }

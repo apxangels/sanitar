@@ -10,10 +10,16 @@ export interface SanitizeOptions {
   exclusions?: string[];
   /** also find personal data (emails, phones, card numbers, names…); default true */
   pii?: boolean;
+  /**
+   * user-defined rules: extra regexes to replace (same format as exclusions).
+   * The first non-empty capture group is replaced, or the whole match.
+   */
+  extraRules?: string[];
 }
 
 export interface ScanOptions {
   exclusions?: string[];
+  extraRules?: string[];
   /** default true */
   pii?: boolean;
 }
@@ -42,7 +48,10 @@ export interface ExclusionError {
 export interface ScanResult {
   findings: Finding[];
   excluded: Finding[];
+  /** invalid exclusions */
   errors: ExclusionError[];
+  /** invalid extraRules (same shape: 1-based line, pattern, message) */
+  ruleErrors: ExclusionError[];
 }
 
 export interface SanitizeResult extends ScanResult {
